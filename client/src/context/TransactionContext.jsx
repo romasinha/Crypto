@@ -21,11 +21,35 @@ export const TransactionProvider = ({children}) =>{
   const[formData, setFormData] = useState({addressTo: '', amount: '', keyword: '', message: ''});
   const[isLoading, setIsLoading] = useState(false);
   const[transactionCount, setTransactionCount] = useState(localStorage.getItem('transactionCount'));
+  const[transactions, setTransactions] = useState([]);
 
   const handleChange = (e, name)=>{
        setFormData((prevState)=>({ //whenever updating a new state using an old state, we write a callback func
           ...prevState, [name]: e.target.value
        }))
+  }
+
+  const getAllTransactions = async ()=>{  //function created on our smart contract i.e transactionContract to return all transactions
+       try {
+        if(!ethereum) return alert("Please install Metamask"); //check if metamask installed, that is, no ethereum object received 
+        const transactionContract = getEthereumContract();
+        
+        const availableTransactions = await transactionContract.getAllTransactions();
+        const structuredTransactions = availableTransactions.map((transaction)=>({
+           addressTo: transaction.receiver,
+           addressFrom: transaction.sender,
+           timestamp: new Date(transaction.timestamp.toNumber()*1000).toLocaleString(), //format of DD/MM/YYYY
+           message: transaction.message,
+           keyword: transaction.keyword,
+           amount: parseInt(transaction.amount._hex) / (10**18) //amount given in hexadecimal GWEI which is converted to number by dividing by a very large amount
+        }))
+
+        console.log(structuredTransactions);
+
+        setTransactions(structuredTransactions);
+       } catch (error) {
+           console.log(error);
+       }
   }
   
   //everytime the app reloads, useeffect called to check if wallet connected, if yes, it consoles the connected account
@@ -37,6 +61,7 @@ export const TransactionProvider = ({children}) =>{
   
         if(accounts.length){
             setCurrentAccount(accounts[0]);
+            getAllTransactions();
         } else{
             console.log("No accounts found")
         }
@@ -46,6 +71,19 @@ export const TransactionProvider = ({children}) =>{
         throw new Error("No ethereum object");
       }
 
+  }
+
+  const checkIfTransactionsExist  = async () =>{
+      try {
+        const transactionContract = getEthereumContract();
+        const transactionCount = await transactionContract.getTransactionCount();
+
+        window.localStorage.setItem(transactionCount, "transactionCount"); //in the local storage,store the transaction count as "transactionCount"
+      } catch (error) {
+        console.log(error);
+
+        throw new Error("No ethereum object");
+      }
   }
 
   //when we click on the button to connect wallet, this function is called which asks to connect and then sets the current account
@@ -91,7 +129,7 @@ export const TransactionProvider = ({children}) =>{
 
         const transactionCount = await transactionContract.getTransactionCount();
         setTransactionCount(transactionCount.toNumber());
-
+        window.reload(); //reloads the page as soon as transaction is done
 
           
       } catch (error) {
@@ -102,10 +140,11 @@ export const TransactionProvider = ({children}) =>{
 
   useEffect(()=>{ 
       checkIfWalletIsConnected(); //this function is called the first time the app loads
-  }, [])
+      checkIfTransactionsExist(); //this function sets the current number of transactions yet so when we do a new transaction, we know its index
+    }, [])
 
   return( //connectWallet function will be passed to all components
-      <TransactionContext.Provider value={{connectWallet, currentAccount,formData,setFormData, handleChange, sendTransaction}}> 
+      <TransactionContext.Provider value={{connectWallet, currentAccount,formData,setFormData, handleChange, sendTransaction, transactions, isLoading}}> 
           {children}
       </TransactionContext.Provider>
   )

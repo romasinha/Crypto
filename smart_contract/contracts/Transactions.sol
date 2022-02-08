@@ -45,6 +45,14 @@ contract Transactions {
                 keyword
             )
         ); //transactions array of struct datatype with all the info passed onto the function is pushed to the array
+        emit Transfer(
+            msg.sender,
+            receiver,
+            amount,
+            message,
+            block.timestamp,
+            keyword
+        );
     }
 
     function getAllTransactions()
@@ -52,11 +60,13 @@ contract Transactions {
         view
         returns (TransferStruct[] memory)
     {
+        return transactions;
         //public view means a read-only function
         //return transactions of the type-array defined by TransferStruct type
     }
 
     function getTransactionCount() public view returns (uint256) {
         //return transactionCount of the type uint256
+        return transactionCount;
     }
 }

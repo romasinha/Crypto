@@ -20,10 +20,17 @@ const Input = ({placeholder,name, type, value, handleChange})=>(
 
 
 const Welcome = () => {
-    const {connectWallet} = useContext(TransactionContext);
+    const {connectWallet, currentAccount, formData, sendTransaction, handleChange} = useContext(TransactionContext);
     
 
 const handleSubmit = ()=>{
+    const{ addressTo, amount, keyword, message} = formData; //destructuring every field data from formData
+    e.preventDefault(); //usually when we press Submit, the page reloads by default, here we prevent it
+    
+    if(!addressTo || !amount || !keyword || !message)
+    return; //just get out of this function and not submit anything
+
+    sendTransaction(); //else if every field is present and is submitted, then sendTransaction function is called
 
 }
 
@@ -37,13 +44,14 @@ const handleSubmit = ()=>{
                 <p className="text-left mt-5 text-white font-;ight md:w-9/12 w-11/12 text-base">
                     Explore the Crypto World. Buy and Sell cryptocurrencies.
                 </p>
-                <button
-                type="button"
+                 
+                {!currentAccount &&<button //this button will be visible if theres no currentAccount
+                type="button" 
                 onClick={connectWallet}
                 className="flex flex-row justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]" 
                 >
                    <p className="text-white text-base font-semibold"> Connect Wallet </p>
-                </button>
+                </button>}
 
                 <div className="grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
                     <div className={`rounded-tl-2xl ${commonStyles}`}>
@@ -79,10 +87,10 @@ const handleSubmit = ()=>{
                     </div>
                 </div>
                 <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
-                   <Input placeholder="Address To" name = "addressTo" type = "text" handleChange = {()=>{}}/>
-                   <Input placeholder="Amount (ETH)" name = "amount" type = "number" handleChange = {()=>{}}/>
-                   <Input placeholder="Keyword (GIF)" name = "keyword" type = "text" handleChange = {()=>{}}/>
-                   <Input placeholder="Message" name = "message" type = "text" handleChange = {()=>{}}/>
+                   <Input placeholder="Address To" name = "addressTo" type = "text" handleChange = {handleChange}/>
+                   <Input placeholder="Amount (ETH)" name = "amount" type = "number" handleChange = {handleChange}/>
+                   <Input placeholder="Keyword (GIF)" name = "keyword" type = "text" handleChange = {handleChange}/>
+                   <Input placeholder="Message" name = "message" type = "text" handleChange = {handleChange}/>
                    <div className="h-[1px]w-full bg-gray-400my-2"/>
 
                    {false?(

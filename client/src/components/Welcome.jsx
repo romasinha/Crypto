@@ -23,7 +23,7 @@ const Welcome = () => {
     const {connectWallet, currentAccount, formData, sendTransaction, handleChange} = useContext(TransactionContext);
     
 
-const handleSubmit = ()=>{
+const handleSubmit = (e)=>{
     const{ addressTo, amount, keyword, message} = formData; //destructuring every field data from formData
     e.preventDefault(); //usually when we press Submit, the page reloads by default, here we prevent it
     
